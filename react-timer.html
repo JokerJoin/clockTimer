@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hello World</title>
+	<!--
+    <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+	-->
+	<script type="text/javascript" src="ball.js"></script>
+	<script type="text/javascript" src="header.js"></script>
+	<script type="text/javascript" src="utils.js"></script>
+	<style>
+	body {margin:0px;padding:0px;}
+	</style>
+  </head>
+  <body>
+    <div id="root"></div>
+	<canvas style="border:solid 1px black;" id="canvas"></canvas>
+    <!--<script type="text/babel">-->
+	<script type="text/javascript">
+	var canvas,context;
+	var myDate = new Date();
+      window.addEventListener('load',function(){
+	    canvas=document.getElementById("canvas");
+		canvas.width=phonewidth;
+		canvas.height=phoneheight;
+		context=canvas.getContext('2d');
+		var clockLines=[];
+		var ScaleTimes=[];
+		
+		//获取系统时间初始值
+		var timeSecond=myDate.getSeconds(),
+		timeMinutes=myDate.getMinutes(),
+		timeHours=myDate.getHours(),
+		timeHours12H=0;
+		if(timeHours>=12){
+			timeHours12H=timeHours-12;
+		}else{
+			timeHours12H=timeHours;
+		}
+		
+		//计算指针初始角度
+		var angleSecond=timeSecond*6-90,
+		angleMinutes=timeMinutes*6-90,
+		angleHours=timeHours12H*30-90;
+		
+		//创建钟体对象
+		var timerContent=new Ball(100,"#DDDDDD");
+		timerContent.x=canvas.width*0.5;
+		timerContent.y=canvas.height*0.5;
+		
+		//创建时针对象
+		for(var i=0;i<3;i++){
+			if(i==0){
+				var clockLine=new Line(95,"#FF0000",angleSecond,timeSecond);
+				clockLine.name="pointer";
+			}else if(i==1){
+				var clockLine=new Line(85,"#000000",angleMinutes,timeMinutes);
+				clockLine.name="minutes";
+			} else if(i==2){
+				var clockLine=new Line(70,"#000000",angleHours,timeHours);
+				clockLine.name="hours";
+				clockLine.lineWidth=2;
+			}
+			clockLine.x=canvas.width*0.5;
+			clockLine.y=canvas.height*0.5;
+			clockLine.rotation=clockLine.angle*Math.PI/180;
+			clockLines.push(clockLine);
+		}
+		clockLines.reverse();
+
+		//返回刻度对象
+		for(var i=0;i<60;i++){
+			var ScaleTime=new ScaleS(100);
+			ScaleTime.x=canvas.width*0.5;
+			ScaleTime.y=canvas.height*0.5;
+			ScaleTime.rotation=clockAngle(i*6);
+			if(i%5==0){
+				ScaleTime.scaleLength=15;
+				ScaleTime.color="#FF0000";
+			}
+			ScaleTimes.push(ScaleTime);
+		}
+		
+		//返回时间
+		function getDataTime(){
+			var time={"second":null,"minutes":null,"hours":null};
+			var myDate = new Date();
+			time.second=myDate.getSeconds();
+			time.minutes=myDate.getMinutes();
+			time.hours=myDate.getHours();
+			return time;
+		}
+		
+		//返回角度
+		function clockAngle(number){
+		    return number*Math.PI/180;
+		}
+		
+		//分开计算每个指针的角度
+		function clock(thisClock){
+			if(thisClock.name!="hours" && thisClock.angle>=360){thisClock.angle=0;}
+			if(thisClock.name=="hours" && thisClock.angle>=360){thisClock.angle=0;}
+			var timer=getDataTime();
+			
+			if(thisClock.name=="pointer" && timer.second!=thisClock.timePoint){
+				thisClock.timePoint=timer.second;
+				thisClock.rotation=clockAngle(thisClock.angle+=6);
+			}
+			if(thisClock.name=="minutes" && timer.minutes!=thisClock.timePoint){
+				thisClock.timePoint=timer.minutes;
+				thisClock.rotation=clockAngle(thisClock.angle+=6);
+			}
+			if(thisClock.name=="hours" && timer.hours!=thisClock.timePoint){
+				thisClock.timePoint=timer.hours;
+				thisClock.rotation=clockAngle(thisClock.angle+=30);
+			}
+			console.log(timer);
+		}
+		function draws(ob){
+			if(ob.name=="pointer"){
+				ob.animaSecondHand(context);
+			}else{
+				ob.anima(context);
+			}
+		}
+		function drawsScale(ob){
+			ob.timeScale(context);
+		}
+		(function draw(){
+			window.requestAnimationFrame(draw);
+			context.clearRect(0,0,canvas.width,canvas.height);
+			
+			for(var i=0;i<clockLines.length;i++){
+				clock(clockLines[i]);
+			}
+			
+			timerContent.draw(context);
+			timerContent.timeNumber(context);
+			clockLines.forEach(draws);
+			ScaleTimes.forEach(drawsScale);
+		}());
+	  },false);
+	  /*
+      ReactDOM.render(
+        <h1>Hello, world!</h1>,
+        document.getElementById('root')
+      );
+	  */
+	  
+    </script>
+  </body>
+</html>
